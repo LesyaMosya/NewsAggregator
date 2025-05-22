@@ -1,6 +1,9 @@
 package com.example.newsaggregator.ui.theme
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontFamily
 import com.example.newsaggregator.R
 import androidx.compose.ui.text.googlefonts.GoogleFont
