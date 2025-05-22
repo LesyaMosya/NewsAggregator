@@ -6,5 +6,5 @@ interface NewsListRepository {
 
     suspend fun getNewsList()
 
-    fun getNewsItem(url: String): ItemDto
+    fun getNewsItem(): ItemDto
 }

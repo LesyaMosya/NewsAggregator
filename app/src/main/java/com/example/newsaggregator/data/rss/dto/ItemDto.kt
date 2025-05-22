@@ -9,35 +9,35 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 data class ItemDto(
     @XmlSerialName("title")
     @XmlElement(true)
-    val title: String,
+    val title: String = "",
 
     @XmlSerialName("link")
     @XmlElement(true)
-    val link: String,
+    val link: String = "",
 
     @XmlSerialName("description")
     @XmlElement(true)
-    val description: String,
+    val description: String = "",
 
-    val categories: List<CategoryDto>,
+    val categories: List<CategoryDto> = emptyList<CategoryDto>(),
 
     @XmlSerialName("pubDate")
     @XmlElement(true)
-    val pubDate: String,
+    val pubDate: String = "",
 
     @XmlSerialName("guid")
     @XmlElement(true)
-    val guid: String,
+    val guid: String = "",
 
-    val contents: List<ContentDto>,
+    val contents: List<ContentDto> = emptyList<ContentDto>(),
 
     @XmlSerialName("creator", "http://purl.org/dc/elements/1.1/", "dc")
     @XmlElement(true)
-    val dcCreator: String,
+    val dcCreator: String = "",
 
 
     @XmlSerialName("date", "http://purl.org/dc/elements/1.1/", "dc")
     @XmlElement(true)
-    val dcDate: String
+    val dcDate: String = ""
 
 )

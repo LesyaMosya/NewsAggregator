@@ -1,6 +1,7 @@
 package com.example.newsaggregator.data.rss
 
 import androidx.lifecycle.SavedStateHandle
+import com.example.newsaggregator.data.rss.dto.ItemDto
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,11 +16,12 @@ object NewsItemNavigationArgModule {
     @ViewModelScoped
     fun provideNewsUrl(
         savedStateHandle: SavedStateHandle
-    ): List<String> {
-        val newsUrl = checkNotNull(savedStateHandle["newsUrl"])
-        val title = checkNotNull(savedStateHandle["title"])
-        return if (newsUrl is String && title is String) listOf(title, newsUrl)
-        else emptyList()
+    ): ItemDto {
+        val newsUrl = savedStateHandle["newsUrl"] as Any?
+        val title = savedStateHandle["title"] as Any?
+
+        return if (newsUrl is String && title is String) ItemDto(title=title, guid=newsUrl)
+        else ItemDto()
     }
 }
 

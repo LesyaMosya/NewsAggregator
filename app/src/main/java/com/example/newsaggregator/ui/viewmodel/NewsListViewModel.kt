@@ -13,7 +13,6 @@ class NewsListViewModel @Inject constructor(
     private val repository: NewsListRepositoryImpl
 ) : ViewModel() {
 
-
     private val getNewsListUseCase = GetNewsListUseCase(repository)
     val channel = repository.channelInfo
 

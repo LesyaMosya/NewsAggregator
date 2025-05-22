@@ -5,7 +5,7 @@ import com.example.newsaggregator.domain.NewsListRepository
 
 class GetNewsItemUseCase(private val repository: NewsListRepository) {
 
-    fun getNewsItem(url: String): ItemDto {
-        return repository.getNewsItem(url)
+    fun getNewsItem(): ItemDto {
+        return repository.getNewsItem()
     }
 }

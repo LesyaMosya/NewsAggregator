@@ -8,9 +8,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NewsItemViewModel @Inject constructor(
-    private val response: List<String>,
+    private val repository: NewsListRepositoryImpl
 ) : ViewModel() {
 
-    val title: String = response[0]
-    val news: String = response[1]
+    private val getNewsItemUseCase = GetNewsItemUseCase(repository).getNewsItem()
+
+    val title = getNewsItemUseCase.title
+    val news = getNewsItemUseCase.guid
 }
