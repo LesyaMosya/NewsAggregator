@@ -9,9 +9,8 @@ import com.example.newsaggregator.domain.NewsListRepository
 import javax.inject.Inject
 
 class NewsListRepositoryImpl @Inject constructor(
-    private val feed: RssFeed,
-    private val response: ItemDto
-): NewsListRepository {
+    private val feed: RssFeed, private val response: ItemDto
+) : NewsListRepository {
     val channelInfo: MutableState<RssState> = mutableStateOf(RssState.Empty)
 
     override suspend fun getNewsList() {
@@ -27,6 +26,6 @@ class NewsListRepositoryImpl @Inject constructor(
     }
 
     override fun getNewsItem(): ItemDto {
-        return ItemDto(title=response.title, guid=response.guid)
+        return ItemDto(title = response.title, guid = response.guid)
     }
 }

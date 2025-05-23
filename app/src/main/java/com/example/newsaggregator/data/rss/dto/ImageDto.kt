@@ -9,13 +9,13 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 data class ImageDto(
     @XmlSerialName("title")
     @XmlElement(true)
-    val title: String,
+    val title: String = "",
 
     @XmlSerialName("url")
     @XmlElement(true)
-    val url: String,
+    val url: String = "",
 
     @XmlSerialName("link")
     @XmlElement(true)
-    val link: String
+    val link: String = ""
 )

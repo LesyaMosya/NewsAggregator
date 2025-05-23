@@ -1,13 +1,10 @@
 package com.example.newsaggregator.ui.screen
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.text.Html
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,11 +13,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
@@ -44,16 +44,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.ActivityNavigator
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -61,6 +61,7 @@ import com.example.newsaggregator.R
 import com.example.newsaggregator.data.rss.RssState
 import com.example.newsaggregator.data.rss.dto.ItemDto
 import com.example.newsaggregator.ui.util.*
+import com.example.newsaggregator.ui.viewmodel.Event
 import com.example.newsaggregator.ui.viewmodel.NewsListViewModel
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
@@ -81,6 +82,9 @@ fun NewsListScreen(navController: NavController) {
                         style = MaterialTheme.typography.headlineLarge
                     )
                 },
+                actions = {
+                    SortButton(viewModel)
+                },
                 colors = TopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     scrolledContainerColor = MaterialTheme.colorScheme.primary,
@@ -100,6 +104,38 @@ fun NewsListScreen(navController: NavController) {
             NewsList(navController, viewModel)
         }
     }
+}
+
+@Composable
+fun SortButton(
+    viewModel: NewsListViewModel
+) {
+    val isSelected = viewModel.isFilterSelected
+
+    Surface (
+        modifier = Modifier
+            .size(45.dp)
+            .clickable {
+                viewModel.createEvent(Event.SortedListByDatePub)
+            },
+        shape = RectangleShape,
+        color = if (isSelected.value) MaterialTheme.colorScheme.secondaryContainer
+        else Color.Transparent
+    ) {
+
+        Image(
+            painter = if (isSelected.value) {
+                painterResource(R.drawable.descending_btn)
+            } else {
+                painterResource(R.drawable.ascending_btn)
+            },
+            contentDescription = stringResource(R.string.sorted_str),
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier.padding(5.dp)
+        )
+    }
+
+    Spacer(modifier = Modifier.width(15.dp))
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -143,12 +179,11 @@ fun NewsList(
 
             is RssState.Loading -> {
                 Loading()
-                //CircularProgressIndicator(LocalContext.current)
+
             }
 
             is RssState.Failure -> {
                 Failure(result.value as RssState.Failure)
-
             }
 
             else -> {}
@@ -219,7 +254,7 @@ fun NewsCard(
             )
 
             Text(
-                text = news.dcCreator,
+                text = if (news.dcCreator != "") news.dcCreator else "Unknown author",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 maxLines = 2,
@@ -272,7 +307,8 @@ fun NewsCard(
                     .padding(3.dp, 0.dp)
             ) {
                 Text(
-                    text = news.contents[0].credit?.value.reduction("Photograph: ", "Ph: "),
+                    text = news.contents[0].credit?.value?.reduction("Photograph: ", "Ph: ")
+                        ?: "Unknown",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSecondary,
                     maxLines = 1,

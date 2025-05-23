@@ -9,41 +9,41 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 data class ChannelDto(
     @XmlSerialName("title")
     @XmlElement(true)
-    val title: String,
+    val title: String = "",
 
     @XmlSerialName("link")
     @XmlElement(true)
-    val link: String,
+    val link: String = "",
 
     @XmlSerialName("description")
     @XmlElement(true)
-    val description: String,
+    val description: String = "",
 
     @XmlSerialName("language")
     @XmlElement(true)
-    val language: String,
+    val language: String = "",
 
     @XmlSerialName("copyright")
     @XmlElement(true)
-    val copyright: String,
+    val copyright: String = "",
 
     @XmlSerialName("pubDate")
     @XmlElement(true)
-    val pubDate: String,
+    val pubDate: String = "",
 
     @XmlSerialName("date", "http://purl.org/dc/elements/1.1/", "dc")
     @XmlElement(true)
-    val dcDate: String,
+    val dcDate: String = "",
 
     @XmlSerialName("language", "http://purl.org/dc/elements/1.1/", "dc")
     @XmlElement(true)
-    val dcLanguage: String,
+    val dcLanguage: String = "",
 
     @XmlSerialName("rights", "http://purl.org/dc/elements/1.1/", "dc")
     @XmlElement(true)
-    val dcRights: String,
+    val dcRights: String = "",
 
-    val image: ImageDto,
+    val image: ImageDto = ImageDto(),
 
-    val items: List<ItemDto>,
+    val items: List<ItemDto> = emptyList<ItemDto>(),
 )

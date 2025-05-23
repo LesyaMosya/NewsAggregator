@@ -11,11 +11,24 @@ fun calculateCountOfHours(dcDate: String): String {
     val date = Instant.parse(dcDate)
     val today = Instant.now()
 
-    return ChronoUnit.HOURS.between(date, today).toString()+"h ago"
+    var diff = ChronoUnit.DAYS.between(date, today)
+    lateinit var diffStr : String
+
+    when {
+        (diff < 1) -> {
+            diff = ChronoUnit.HOURS.between(date, today)
+            diffStr = diff.toString()+"h ago"
+        }
+        else -> {
+            diffStr = diff.toString()+"d ago"
+        }
+    }
+
+    return if (diff > 0) diffStr
+    else "Now"
 }
 
 
-fun String?.reduction(replaced: String, toReplace: String): String {
-    return this?.replace(replaced, toReplace) ?: "Unknown"
-
+fun String.reduction(replaced: String, toReplace: String): String {
+    return if (this != "") this.replace(replaced, toReplace) else "Ph: unknown"
 }
