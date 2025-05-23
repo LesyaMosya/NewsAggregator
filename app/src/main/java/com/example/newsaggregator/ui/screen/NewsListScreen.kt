@@ -1,11 +1,17 @@
 package com.example.newsaggregator.ui.screen
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Build
 import android.text.Html
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +23,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,6 +35,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -34,8 +50,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.ActivityNavigator
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -44,6 +62,7 @@ import com.example.newsaggregator.data.rss.RssState
 import com.example.newsaggregator.data.rss.dto.ItemDto
 import com.example.newsaggregator.ui.util.*
 import com.example.newsaggregator.ui.viewmodel.NewsListViewModel
+import kotlinx.coroutines.launch
 import java.net.URLEncoder
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -83,34 +102,58 @@ fun NewsListScreen(navController: NavController) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NewsList(
     navController: NavController,
     viewModel: NewsListViewModel
 ) {
-    when (val result = viewModel.channel.value) {
-        is RssState.SuccessLoadingNewsList -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                items(result.data.items) { news ->
-                    NewsCard(news, navController)
+    val coroutineScope = rememberCoroutineScope()
+    var refreshing by remember { mutableStateOf(false) }
+    var result: MutableState<RssState> = viewModel.channel
+
+    fun refresh() =
+        coroutineScope.launch {
+            refreshing = true
+            result = viewModel.channel
+            refreshing = false
+        }
+
+    val state = rememberPullRefreshState(refreshing, ::refresh)
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .pullRefresh(state)
+    ) {
+        when (result.value) {
+            is RssState.SuccessLoadingNewsList -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    if (!refreshing) {
+                        items((result.value as RssState.SuccessLoadingNewsList).data.items) { news ->
+                            NewsCard(news, navController)
+                        }
+                    }
                 }
             }
+
+            is RssState.Loading -> {
+                Loading()
+                //CircularProgressIndicator(LocalContext.current)
+            }
+
+            is RssState.Failure -> {
+                Failure(result.value as RssState.Failure)
+
+            }
+
+            else -> {}
         }
-
-        is RssState.Loading -> {
-            Loading()
-        }
-
-        is RssState.Failure -> {
-            Failure(result)
-
-        }
-
-        else -> {}
+        PullRefreshIndicator(refreshing, state, Modifier.align(Alignment.TopCenter))
     }
 }
 
@@ -120,22 +163,34 @@ fun NewsCard(
     news: ItemDto,
     navController: NavController
 ) {
+    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+        putExtra(Intent.EXTRA_TEXT, news.guid)
+        type = "text/x-uri"
+    }
+
+    val context = LocalContext.current
+    val shareIntent = Intent.createChooser(sendIntent, null)
+
+
     Row(
         modifier = Modifier
-            .clickable {
-                navController.navigate(
-                    "news_item_screen/${news.title}/${
-                        URLEncoder.encode(
-                            news.guid,
-                            "UTF8"
-                        )
-                    }"
-                )
-            }
             .border(1.dp, MaterialTheme.colorScheme.onPrimaryContainer)
             .padding(2.dp, 0.dp, 0.dp, 0.dp)
             .fillMaxWidth()
             .height(200.dp)
+            .combinedClickable(
+                onLongClick = { context.startActivity(shareIntent) },
+                onClick = {
+                    navController.navigate(
+                        "news_item_screen/${news.title}/${
+                            URLEncoder.encode(
+                                news.guid,
+                                "UTF8"
+                            )
+                        }"
+                    )
+                }
+            )
     ) {
 
         Column (
@@ -227,3 +282,4 @@ fun NewsCard(
         }
     }
 }
+
