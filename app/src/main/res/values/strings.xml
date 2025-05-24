@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">NewsAggregator</string>
     <string name="sorted_str">sorted</string>
+    <string name="update_str">UPDATE</string>
 </resources>

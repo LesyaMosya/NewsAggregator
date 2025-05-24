@@ -27,6 +27,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,7 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -145,17 +145,16 @@ fun NewsList(
     navController: NavController,
     viewModel: NewsListViewModel
 ) {
+    var result = viewModel.channel.value
+
     val coroutineScope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
-    var result: MutableState<RssState> = viewModel.channel
-
     fun refresh() =
         coroutineScope.launch {
             refreshing = true
-            result = viewModel.channel
+            viewModel.createEvent(Event.UpdateContent)
             refreshing = false
         }
-
     val state = rememberPullRefreshState(refreshing, ::refresh)
 
     Box(
@@ -163,14 +162,14 @@ fun NewsList(
             .fillMaxSize()
             .pullRefresh(state)
     ) {
-        when (result.value) {
+        when (result) {
             is RssState.SuccessLoadingNewsList -> {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                 ) {
                     if (!refreshing) {
-                        items((result.value as RssState.SuccessLoadingNewsList).data.items) { news ->
+                        items(result.data.items) { news ->
                             NewsCard(news, navController)
                         }
                     }
@@ -178,12 +177,22 @@ fun NewsList(
             }
 
             is RssState.Loading -> {
-                Loading()
-
+                Box (
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(70.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.secondaryContainer,
+                        strokeWidth = 7.dp
+                    )
+                }
             }
 
             is RssState.Failure -> {
-                Failure(result.value as RssState.Failure)
+                Failure(result, viewModel)
             }
 
             else -> {}
@@ -249,7 +258,7 @@ fun NewsCard(
                     HtmlCompat.FROM_HTML_SEPARATOR_LINE_BREAK_PARAGRAPH
                 ).toString(),
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 6,
+                maxLines = 5,
                 overflow = TextOverflow.Ellipsis,
             )
 

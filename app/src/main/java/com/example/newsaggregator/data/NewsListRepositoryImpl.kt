@@ -11,6 +11,7 @@ import javax.inject.Inject
 class NewsListRepositoryImpl @Inject constructor(
     private val feed: RssFeed, private val response: ItemDto
 ) : NewsListRepository {
+
     val channelInfo: MutableState<RssState> = mutableStateOf(RssState.Empty)
 
     override suspend fun getNewsList() {
@@ -20,7 +21,7 @@ class NewsListRepositoryImpl @Inject constructor(
                 val channel = feed.getRss().channel
                 value = RssState.SuccessLoadingNewsList(channel)
             }
-        } catch (e: RuntimeException) {
+        } catch (e: Exception) {
             channelInfo.value = RssState.Failure(e.message.toString(), e.cause.toString())
         }
     }

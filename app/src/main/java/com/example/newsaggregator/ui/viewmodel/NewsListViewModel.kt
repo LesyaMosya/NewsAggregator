@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NewsListViewModel @Inject constructor(
-    private val repository: NewsListRepositoryImpl
+    repository: NewsListRepositoryImpl
 ) : ViewModel() {
 
     private val getNewsListUseCase = GetNewsListUseCase(repository)
@@ -26,10 +26,7 @@ class NewsListViewModel @Inject constructor(
     val isFilterSelected = _isFilterSelected
 
     init {
-        viewModelScope.launch {
-            getNewsListUseCase.getNewsList()
-            sortedNewsListByDatePub()
-        }
+        fetchData()
     }
 
     fun createEvent(e: Event) {
@@ -42,10 +39,21 @@ class NewsListViewModel @Inject constructor(
                 _isFilterSelected.value = !_isFilterSelected.value
                 sortedNewsListByDatePub()
             }
+
+            Event.UpdateContent -> {
+                fetchData()
+            }
         }
     }
 
-    fun sortedNewsListByDatePub() {
+    private fun fetchData() {
+        viewModelScope.launch {
+            getNewsListUseCase.getNewsList()
+            sortedNewsListByDatePub()
+        }
+    }
+
+    private fun sortedNewsListByDatePub() {
         if (_channel.value is RssState.SuccessLoadingNewsList) {
             val sortedList = if (isFilterSelected.value) {
                 (_channel.value as RssState.SuccessLoadingNewsList).data.items.sortedBy { it.dcDate }
